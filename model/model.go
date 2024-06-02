@@ -21,6 +21,7 @@ type Session struct {
 type ElectricityUsages struct {
 	gorm.Model
 	ID            uint      `gorm:"not null"`
+	Name          string    `gorm:"not null"`
 	UsageTime     time.Time `gorm:"not null"`
 	Kwh           float64   `gorm:"not null"`
 	Price_per_kwh float64   `gorm:"not null"`

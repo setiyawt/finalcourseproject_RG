@@ -6,6 +6,8 @@ import (
 	"finalcourseproject/model"
 	repo "finalcourseproject/repository"
 	"finalcourseproject/service"
+	"fmt"
+	"sync"
 	"time"
 )
 
@@ -25,47 +27,58 @@ func main() {
 		panic(err)
 	}
 
-	conn.AutoMigrate(&model.User{}, &model.Session{}, &model.ElectricityUsages{})
+	conn.AutoMigrate(&model.User{}, &model.Session{}, &model.Prediction{}, &model.ElectricityUsages{})
 
-	electricity_usages := []model.ElectricityUsages{
+	prediction := []model.Prediction{
 		{
-			UsageTime:     time.Now(),
-			Kwh:           40.0,
-			Price_per_kwh: 415,
-			CreatedAt:     time.Now(),
+			PredictedKwh: 2240.0,
+			PredictedAt:  time.Now(),
+			CreatedAt:    time.Now(),
 		},
 		{
-			UsageTime:     time.Now(),
-			Kwh:           50.0,
-			Price_per_kwh: 415,
-			CreatedAt:     time.Now(),
+			PredictedKwh: 2133.0,
+			PredictedAt:  time.Now(),
+			CreatedAt:    time.Now(),
 		},
 		{
-			UsageTime:     time.Now(),
-			Kwh:           30.0,
-			Price_per_kwh: 415,
-			CreatedAt:     time.Now(),
+			PredictedKwh: 1294.0,
+			PredictedAt:  time.Now(),
+			CreatedAt:    time.Now(),
 		},
 	}
 
-	for _, c := range electricity_usages {
-		if err := conn.Create(&c).Error; err != nil {
-			panic("failed to create default electricity_usage")
+	var wg sync.WaitGroup
+	errChan := make(chan error, len(prediction))
+
+	for _, usage := range prediction {
+		wg.Add(1)
+		go func(usage model.Prediction) {
+			defer wg.Done()
+			if err := conn.Create(&usage).Error; err != nil {
+				errChan <- fmt.Errorf("failed to create default electricity_usage: %w", err)
+			}
+		}(usage)
+	}
+
+	wg.Wait()
+	close(errChan)
+
+	for err := range errChan {
+		if err != nil {
+			fmt.Println(err)
 		}
 	}
 
 	userRepo := repo.NewUserRepo(conn)
 	sessionRepo := repo.NewSessionRepo(conn)
+	predictionRepo := repo.NewPredictionRepo(conn)
 	electricityUsagesRepo := repo.NewElectricityUsagesRepo(conn)
-	// studentRepo := repo.NewStudentRepo(conn)
-	// classRepo := repo.NewClassRepo(conn)
 
 	userService := service.NewUserService(userRepo)
 	sessionService := service.NewSessionService(sessionRepo)
+	predictionService := service.NewPredictionService(predictionRepo)
 	electricityUsagesService := service.NewElectricityUsagesService(electricityUsagesRepo)
-	// studentService := service.NewStudentService(studentRepo)
-	// classService := service.NewClassService(classRepo)
 
-	mainAPI := api.NewAPI(userService, sessionService, electricityUsagesService)
+	mainAPI := api.NewAPI(userService, sessionService, predictionService, electricityUsagesService)
 	mainAPI.Start()
 }

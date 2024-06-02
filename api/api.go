@@ -7,20 +7,21 @@ import (
 )
 
 type API struct {
-	userService    service.UserService
-	sessionService service.SessionService
-	// studentService service.StudentService
-	electricity_usagesService service.ElectricityUsagesService
-	mux                       *http.ServeMux
+	userService              service.UserService
+	sessionService           service.SessionService
+	predictionService        service.PredictionService
+	electricityUsagesService service.ElectricityUsagesService
+
+	mux *http.ServeMux
 }
 
-func NewAPI(userService service.UserService, sessionService service.SessionService, electricity_usagesService service.ElectricityUsagesService) API {
+func NewAPI(userService service.UserService, sessionService service.SessionService, predictionService service.PredictionService, electricityUsagesService service.ElectricityUsagesService) API {
 	mux := http.NewServeMux()
 	api := API{
 		userService,
 		sessionService,
-		// studentService,
-		electricity_usagesService,
+		predictionService,
+		electricityUsagesService,
 		mux,
 	}
 
@@ -28,14 +29,11 @@ func NewAPI(userService service.UserService, sessionService service.SessionServi
 	mux.Handle("/user/login", api.Post(http.HandlerFunc(api.Login)))
 	mux.Handle("/user/logout", api.Get(api.Auth(http.HandlerFunc(api.Logout))))
 
-	// mux.Handle("/student/get-all", api.Get(api.Auth(http.HandlerFunc(api.FetchAllStudent))))
-	// mux.Handle("/student/get", api.Get(api.Auth(http.HandlerFunc(api.FetchStudentByID))))
-	// mux.Handle("/student/add", api.Post(api.Auth(http.HandlerFunc(api.Storestudent))))
-	// mux.Handle("/student/update", api.Put(api.Auth(http.HandlerFunc(api.Updatestudent))))
-	// mux.Handle("/student/delete", api.Delete(http.HandlerFunc(api.Deletestudent)))
-	// mux.Handle("/student/get-with-class", api.Get(http.HandlerFunc(api.FetchStudentWithClass)))
-
-	// mux.Handle("/class/get-all", api.Get(api.Auth(http.HandlerFunc(api.FetchAllClass))))
+	mux.Handle("/electricityusage/get-all", api.Get(api.Auth(http.HandlerFunc(api.FetchAllElectricityUsages))))
+	mux.Handle("/electricityusage/get", api.Get(api.Auth(http.HandlerFunc(api.FetchSElectricityUsagesByID))))
+	mux.Handle("/electricityusage/add", api.Post(api.Auth(http.HandlerFunc(api.StoreelectricityUsages))))
+	mux.Handle("/electricityusage/update", api.Put(api.Auth(http.HandlerFunc(api.UpdateelectricityUsages))))
+	mux.Handle("/electricityusage/delete", api.Delete(http.HandlerFunc(api.DeleteelectricityUsages)))
 
 	return api
 }

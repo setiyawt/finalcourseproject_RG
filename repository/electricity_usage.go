@@ -9,6 +9,10 @@ import (
 
 type ElectricityUsagesRepository interface {
 	FetchAll() ([]model.ElectricityUsages, error)
+	FetchByID(id int) (*model.ElectricityUsages, error)
+	Store(s *model.ElectricityUsages) error
+	Update(id int, s *model.ElectricityUsages) error
+	Delete(id int) error
 }
 
 type electricityUsagesRepoImpl struct {
@@ -22,10 +26,40 @@ func NewElectricityUsagesRepo(db *gorm.DB) *electricityUsagesRepoImpl {
 func (s *electricityUsagesRepoImpl) FetchAll() ([]model.ElectricityUsages, error) {
 	var electricityUsages []model.ElectricityUsages
 	if err := s.db.Find(&electricityUsages).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("no electricity usage found")
-		}
 		return nil, err
 	}
 	return electricityUsages, nil // TODO: replace this
+}
+
+func (s *electricityUsagesRepoImpl) Store(electricityUsages *model.ElectricityUsages) error {
+	if err := s.db.Save(&electricityUsages); err != nil {
+		return nil
+	}
+	return nil // TODO: replace this
+}
+
+func (s *electricityUsagesRepoImpl) Update(id int, electricityUsages *model.ElectricityUsages) error {
+
+	if err := s.db.Model(&model.ElectricityUsages{}).Where("id = ?", id).Updates(&electricityUsages).Error; err != nil {
+		return err
+	}
+	return nil // TODO: replace this
+}
+
+func (s *electricityUsagesRepoImpl) Delete(id int) error {
+	if err := s.db.Where("id = ?", id).Delete(&model.ElectricityUsages{}).Error; err != nil {
+		return err
+	}
+	return nil // TODO: replace this
+}
+
+func (s *electricityUsagesRepoImpl) FetchByID(id int) (*model.ElectricityUsages, error) {
+	var electricityUsages model.ElectricityUsages
+	if err := s.db.First(&electricityUsages, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("Electricity usages not found")
+		}
+		return nil, err
+	}
+	return &electricityUsages, nil // TODO: replace this
 }
