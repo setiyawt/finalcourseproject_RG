@@ -18,7 +18,9 @@ import (
 
 // Struktur untuk mendeskripsikan payload MQTT
 type UsagePayload struct {
-	UsageTime time.Time `json:"usage_time"`
+	UsageTime float64   `json:"usage_time"`
+	StartTime time.Time `json:"start_time"`
+	EndTime   time.Time `json:"end_time"`
 	Kwh       float64   `json:"kwh"`
 	Name      string    `json:"name"`
 }
@@ -43,7 +45,7 @@ func main() {
 	conn.AutoMigrate(&model.User{}, &model.Session{}, &model.Prediction{}, &model.ElectricityUsages{})
 
 	// MQTT Configuration
-	opts := mqtt.NewClientOptions().AddBroker("tcp://localhost:1883")
+	opts := mqtt.NewClientOptions().AddBroker("tcp://broker.emqx.io:1883")
 	opts.SetClientID("736cb8ed-ba7e-4e1b-800e-ad69a6f90ff5")
 
 	// Menambahkan log tambahan
@@ -79,13 +81,17 @@ func main() {
 			return
 		}
 
+		usageTime := usagePayload.EndTime.Sub(usagePayload.StartTime).Hours()
 		// Log the parsed data
-		log.Printf("Parsed data - Name: %s, UsageTime: %v, Kwh: %f\n", usagePayload.Name, usagePayload.UsageTime, usagePayload.Kwh)
+		log.Printf("Parsed data - Name: %s, StartTime: %v, EndTime: %v, Kwh: %f\n", usagePayload.Name, usagePayload.StartTime, usagePayload.EndTime, usagePayload.Kwh)
 
 		// Create a new ElectricityUsages entry
+
 		usage := model.ElectricityUsages{
 			Name:      usagePayload.Name,
-			UsageTime: usagePayload.UsageTime,
+			StartTime: usagePayload.StartTime,
+			EndTime:   usagePayload.EndTime,
+			UsageTime: usageTime,
 			Kwh:       usagePayload.Kwh,
 		}
 

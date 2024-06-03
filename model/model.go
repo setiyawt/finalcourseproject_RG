@@ -21,7 +21,9 @@ type Session struct {
 type ElectricityUsages struct {
 	gorm.Model
 	ID        uint      `gorm:"not null"`
-	UsageTime time.Time `gorm:"not null"`
+	StartTime time.Time `gorm:"type:timestamp"`
+	EndTime   time.Time `gorm:"type:timestamp"`
+	UsageTime float64   `gorm:"type:decimal(10,2)"`
 	Kwh       float64   `gorm:"not null"`
 	Name      string    `gorm:"not null"`
 	CreatedAt time.Time `gorm:"autoCreateTime"`
