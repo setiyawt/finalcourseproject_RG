@@ -27,5 +27,5 @@ func (s *predictionRepoImpl) FetchAll() ([]model.Prediction, error) {
 		}
 		return nil, err
 	}
-	return electricityUsages, nil // TODO: replace this
+	return electricityUsages, nil
 }

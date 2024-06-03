@@ -28,14 +28,14 @@ func (s *electricityUsagesRepoImpl) FetchAll() ([]model.ElectricityUsages, error
 	if err := s.db.Find(&electricityUsages).Error; err != nil {
 		return nil, err
 	}
-	return electricityUsages, nil // TODO: replace this
+	return electricityUsages, nil
 }
 
 func (s *electricityUsagesRepoImpl) Store(electricityUsages *model.ElectricityUsages) error {
 	if err := s.db.Save(&electricityUsages); err != nil {
 		return nil
 	}
-	return nil // TODO: replace this
+	return nil
 }
 
 func (s *electricityUsagesRepoImpl) Update(id int, electricityUsages *model.ElectricityUsages) error {
@@ -43,14 +43,14 @@ func (s *electricityUsagesRepoImpl) Update(id int, electricityUsages *model.Elec
 	if err := s.db.Model(&model.ElectricityUsages{}).Where("id = ?", id).Updates(&electricityUsages).Error; err != nil {
 		return err
 	}
-	return nil // TODO: replace this
+	return nil
 }
 
 func (s *electricityUsagesRepoImpl) Delete(id int) error {
 	if err := s.db.Where("id = ?", id).Delete(&model.ElectricityUsages{}).Error; err != nil {
 		return err
 	}
-	return nil // TODO: replace this
+	return nil
 }
 
 func (s *electricityUsagesRepoImpl) FetchByID(id int) (*model.ElectricityUsages, error) {
@@ -61,5 +61,5 @@ func (s *electricityUsagesRepoImpl) FetchByID(id int) (*model.ElectricityUsages,
 		}
 		return nil, err
 	}
-	return &electricityUsages, nil // TODO: replace this
+	return &electricityUsages, nil
 }

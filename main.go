@@ -1,17 +1,30 @@
 package main
 
 import (
+	"encoding/json"
 	"finalcourseproject/api"
 	"finalcourseproject/db"
 	"finalcourseproject/model"
 	repo "finalcourseproject/repository"
 	"finalcourseproject/service"
 	"fmt"
+	"log"
+	"os"
 	"sync"
 	"time"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
+// Struktur untuk mendeskripsikan payload MQTT
+type UsagePayload struct {
+	UsageTime time.Time `json:"usage_time"`
+	Kwh       float64   `json:"kwh"`
+	Name      string    `json:"name"`
+}
+
 func main() {
+	// Inisialisasi database
 	db := db.NewDB()
 	dbCredential := model.Credential{
 		Host:         "localhost",
@@ -29,6 +42,71 @@ func main() {
 
 	conn.AutoMigrate(&model.User{}, &model.Session{}, &model.Prediction{}, &model.ElectricityUsages{})
 
+	// MQTT Configuration
+	opts := mqtt.NewClientOptions().AddBroker("tcp://localhost:1883")
+	opts.SetClientID("736cb8ed-ba7e-4e1b-800e-ad69a6f90ff5")
+
+	// Menambahkan log tambahan
+	opts.OnConnect = func(client mqtt.Client) {
+		log.Println("Connected to the MQTT broker successfully.")
+	}
+
+	opts.OnConnectionLost = func(client mqtt.Client, err error) {
+		log.Printf("Connection to the MQTT broker lost: %v\n", err)
+	}
+
+	client := mqtt.NewClient(opts)
+
+	token := client.Connect()
+	token.Wait()
+
+	if token.Error() != nil {
+		log.Fatal("Error connecting to the MQTT broker:", token.Error())
+		os.Exit(1)
+	}
+
+	log.Println("MQTT connection established successfully.")
+
+	// Subscribe to the IoT devices topic
+	token = client.Subscribe("kwh", 0, func(client mqtt.Client, msg mqtt.Message) {
+		log.Printf("Received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
+
+		// Parse the JSON payload
+		var usagePayload UsagePayload
+		err := json.Unmarshal(msg.Payload(), &usagePayload)
+		if err != nil {
+			log.Printf("Error parsing JSON payload: %v\n", err)
+			return
+		}
+
+		// Log the parsed data
+		log.Printf("Parsed data - Name: %s, UsageTime: %v, Kwh: %f\n", usagePayload.Name, usagePayload.UsageTime, usagePayload.Kwh)
+
+		// Create a new ElectricityUsages entry
+		usage := model.ElectricityUsages{
+			Name:      usagePayload.Name,
+			UsageTime: usagePayload.UsageTime,
+			Kwh:       usagePayload.Kwh,
+		}
+
+		// Store the data in the database
+		if err := conn.Create(&usage).Error; err != nil {
+			log.Printf("Failed to store message to database: %v\n", err)
+		} else {
+			log.Println("Data stored successfully in the database.")
+		}
+	})
+
+	token.Wait()
+
+	if token.Error() != nil {
+		log.Fatal("Error subscribing to the MQTT topic:", token.Error())
+		os.Exit(1)
+	} else {
+		log.Println("Subscribed to the MQTT topic successfully.")
+	}
+
+	// Inisialisasi data prediksi
 	prediction := []model.Prediction{
 		{
 			PredictedKwh: 2240.0,

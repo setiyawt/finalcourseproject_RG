@@ -28,21 +28,21 @@ func (s *sessionsRepoImpl) AddSessions(session model.Session) error {
 	if err := s.db.Create(&session).Error; err != nil {
 		return err
 	}
-	return nil // TODO: replace this
+	return nil
 }
 
 func (s *sessionsRepoImpl) DeleteSession(token string) error {
 	if err := s.db.Where("token = ?", token).Delete(&model.Session{}).Error; err != nil {
 		return err
 	}
-	return nil // TODO: replace this
+	return nil
 }
 
 func (s *sessionsRepoImpl) UpdateSessions(session model.Session) error {
 	if err := s.db.Model(&model.Session{}).Where("username = ?", session.Username).Updates(&session).Error; err != nil {
 		return err
 	}
-	return nil // TODO: replace this
+	return nil
 }
 
 func (s *sessionsRepoImpl) SessionAvailName(name string) error {

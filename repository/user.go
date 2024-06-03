@@ -23,7 +23,7 @@ func (u *userRepository) Add(user model.User) error {
 	if err := u.db.Create(&user).Error; err != nil {
 		return err
 	}
-	return nil // TODO: replace this
+	return nil
 }
 
 func (u *userRepository) CheckAvail(user model.User) error {
@@ -34,5 +34,5 @@ func (u *userRepository) CheckAvail(user model.User) error {
 		}
 		return err
 	}
-	return nil // TODO: replace this
+	return nil
 }
