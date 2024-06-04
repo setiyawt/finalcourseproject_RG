@@ -3,12 +3,13 @@ package service
 import (
 	"finalcourseproject/model"
 	"finalcourseproject/repository"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService interface {
 	Login(user model.User) error
 	Register(user model.User) error
-
 	CheckPassLength(pass string) bool
 	CheckPassAlphabet(pass string) bool
 }
@@ -31,20 +32,21 @@ func (s *userService) Login(user model.User) error {
 }
 
 func (s *userService) Register(user model.User) error {
-	err := s.userRepository.Add(user)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
+	user.Password = string(hashedPassword)
 
+	err = s.userRepository.Add(user)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (s *userService) CheckPassLength(pass string) bool {
-	if len(pass) <= 5 {
-		return true
-	}
-
-	return false
+	return len(pass) >= 5
 }
 
 func (s *userService) CheckPassAlphabet(pass string) bool {

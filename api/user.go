@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func (api *API) Register(w http.ResponseWriter, r *http.Request) {
@@ -25,7 +26,7 @@ func (api *API) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if api.userService.CheckPassLength(creds.Password) {
+	if !api.userService.CheckPassLength(creds.Password) {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(model.ErrorResponse{Error: "Please provide a password of more than 5 characters"})
 		return
@@ -37,6 +38,15 @@ func (api *API) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(creds.Password), bcrypt.DefaultCost)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(model.ErrorResponse{Error: "Internal Server Error"})
+		return
+	}
+
+	creds.Password = string(hashedPassword)
+
 	err = api.userService.Register(creds)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -44,8 +54,9 @@ func (api *API) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	status := model.SuccessResponse{Message: "User Registered"}
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(model.SuccessResponse{Message: "User Registered"})
+	json.NewEncoder(w).Encode(status)
 }
 
 func (api *API) Login(w http.ResponseWriter, r *http.Request) {
@@ -64,7 +75,7 @@ func (api *API) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if api.userService.CheckPassLength(creds.Password) {
+	if !api.userService.CheckPassLength(creds.Password) {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(model.ErrorResponse{Error: "Please provide a password of more than 5 characters"})
 		return

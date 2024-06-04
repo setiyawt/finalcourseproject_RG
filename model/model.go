@@ -9,8 +9,9 @@ import (
 type User struct {
 	gorm.Model
 	Username string `gorm:"type:varchar(100);unique"`
-	Password string `json:"password"`
+	Password string `json:"Password"`
 }
+
 type Session struct {
 	gorm.Model
 	Token    string    `json:"token"`
@@ -51,6 +52,5 @@ type ErrorResponse struct {
 }
 
 type SuccessResponse struct {
-	Username string `json:"username"`
-	Message  string `json:"message"`
+	Message string `json:"message"`
 }
