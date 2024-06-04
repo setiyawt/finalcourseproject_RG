@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func (api *API) Register(w http.ResponseWriter, r *http.Request) {
@@ -38,14 +37,14 @@ func (api *API) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(creds.Password), bcrypt.DefaultCost)
+	//hashedPassword, err := bcrypt.GenerateFromPassword([]byte(creds.Password), bcrypt.DefaultCost)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(model.ErrorResponse{Error: "Internal Server Error"})
 		return
 	}
 
-	creds.Password = string(hashedPassword)
+	//creds.Password = string(hashedPassword)
 
 	err = api.userService.Register(creds)
 	if err != nil {
@@ -61,7 +60,6 @@ func (api *API) Register(w http.ResponseWriter, r *http.Request) {
 
 func (api *API) Login(w http.ResponseWriter, r *http.Request) {
 	var creds model.User
-
 	err := json.NewDecoder(r.Body).Decode(&creds)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)

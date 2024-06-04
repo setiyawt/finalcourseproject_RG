@@ -9,7 +9,7 @@ import (
 type User struct {
 	gorm.Model
 	Username string `gorm:"type:varchar(100);unique"`
-	Password string `json:"Password"`
+	Password string `json:"password"`
 }
 
 type Session struct {

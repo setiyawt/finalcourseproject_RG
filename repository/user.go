@@ -4,7 +4,6 @@ import (
 	"errors"
 	"finalcourseproject/model"
 
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -33,10 +32,8 @@ func (u *userRepository) CheckAvail(user model.User) error {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return err
 		}
-		err := bcrypt.CompareHashAndPassword([]byte(existingUser.Password), []byte(user.Password))
-		if err != nil {
-			return errors.New("invalid password")
-		}
+
 	}
+
 	return nil
 }
