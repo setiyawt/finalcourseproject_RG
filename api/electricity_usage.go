@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"finalcourseproject/model"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -77,6 +78,8 @@ func (api *API) UpdateelectricityUsages(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	log.Printf("Updating electricity usage with ID: %d, Data: %+v", idInt, electricityUsages)
+
 	err = api.electricityUsagesService.Update(idInt, &electricityUsages)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -88,7 +91,7 @@ func (api *API) UpdateelectricityUsages(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(electricityUsages)
 }
 
-func (api *API) DeleteelectricityUsages(w http.ResponseWriter, r *http.Request) {
+func (api *API) DeletelectricityUsages(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
 	idInt, err := strconv.Atoi(id)
 	if err != nil {
@@ -104,5 +107,7 @@ func (api *API) DeleteelectricityUsages(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(model.SuccessResponse{Message: "electricity Usages berhasil dihapus"})
+	message := fmt.Sprintf("Electricity usage with ID=%d berhasil dihapus", idInt)
+	json.NewEncoder(w).Encode(model.SuccessResponse{Message: message})
+
 }

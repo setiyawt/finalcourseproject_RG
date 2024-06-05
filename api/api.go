@@ -30,10 +30,10 @@ func NewAPI(userService service.UserService, sessionService service.SessionServi
 	mux.Handle("/user/logout", api.Get(api.Auth(http.HandlerFunc(api.Logout)))) //berhasil
 
 	mux.Handle("/electricityusage/get-all", api.Get(api.Auth(http.HandlerFunc(api.FetchAllElectricityUsages)))) //berhasil
-	mux.Handle("/electricityusage/get", api.Get(api.Auth(http.HandlerFunc(api.FetchSElectricityUsagesByID))))   //gagal bad request 400
+	mux.Handle("/electricityusage/get", api.Get(api.Auth(http.HandlerFunc(api.FetchSElectricityUsagesByID))))   //berhasil //http://localhost:8080/electricityusage/get?id=13
 	mux.Handle("/electricityusage/add", api.Post(api.Auth(http.HandlerFunc(api.StoreelectricityUsages))))       //berhasil
-	mux.Handle("/electricityusage/update", api.Put(api.Auth(http.HandlerFunc(api.UpdateelectricityUsages))))    //gagal bad request 400
-	mux.Handle("/electricityusage/delete", api.Delete(http.HandlerFunc(api.DeleteelectricityUsages)))           //gagal bad request 400
+	mux.Handle("/electricityusage/update", api.Put(api.Auth(http.HandlerFunc(api.UpdateelectricityUsages))))    //berhasil
+	mux.Handle("/electricityusage/delete", api.Delete(http.HandlerFunc(api.DeletelectricityUsages)))            //berhasil
 
 	return api
 }
