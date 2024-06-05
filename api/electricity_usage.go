@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"finalcourseproject/model"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -45,13 +46,16 @@ func (api *API) StoreelectricityUsages(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(model.ErrorResponse{Error: err.Error()})
 		return
 	}
-
+	log.Printf("Received data: %+v", electricityUsages)
+	usageTime := electricityUsages.EndTime.Sub(electricityUsages.StartTime).Hours()
+	electricityUsages.UsageTime = usageTime
 	err = api.electricityUsagesService.Store(&electricityUsages)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(model.ErrorResponse{Error: err.Error()})
 		return
 	}
+	log.Printf("Data to be saved: %+v", electricityUsages)
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(electricityUsages)

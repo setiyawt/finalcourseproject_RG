@@ -32,6 +32,7 @@ func (s *electricityUsagesRepoImpl) FetchAll() ([]model.ElectricityUsages, error
 }
 
 func (s *electricityUsagesRepoImpl) Store(electricityUsages *model.ElectricityUsages) error {
+
 	if err := s.db.Save(&electricityUsages); err != nil {
 		return nil
 	}

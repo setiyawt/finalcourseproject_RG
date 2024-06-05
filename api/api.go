@@ -25,15 +25,15 @@ func NewAPI(userService service.UserService, sessionService service.SessionServi
 		mux,
 	}
 
-	mux.Handle("/user/register", api.Post(http.HandlerFunc(api.Register)))
-	mux.Handle("/user/login", api.Post(http.HandlerFunc(api.Login)))
-	mux.Handle("/user/logout", api.Get(api.Auth(http.HandlerFunc(api.Logout))))
+	mux.Handle("/user/register", api.Post(http.HandlerFunc(api.Register)))      //berhasil
+	mux.Handle("/user/login", api.Post(http.HandlerFunc(api.Login)))            //berhasil
+	mux.Handle("/user/logout", api.Get(api.Auth(http.HandlerFunc(api.Logout)))) //berhasil
 
-	mux.Handle("/electricityusage/get-all", api.Get(api.Auth(http.HandlerFunc(api.FetchAllElectricityUsages))))
-	mux.Handle("/electricityusage/get", api.Get(api.Auth(http.HandlerFunc(api.FetchSElectricityUsagesByID))))
-	mux.Handle("/electricityusage/add", api.Post(api.Auth(http.HandlerFunc(api.StoreelectricityUsages))))
-	mux.Handle("/electricityusage/update", api.Put(api.Auth(http.HandlerFunc(api.UpdateelectricityUsages))))
-	mux.Handle("/electricityusage/delete", api.Delete(http.HandlerFunc(api.DeleteelectricityUsages)))
+	mux.Handle("/electricityusage/get-all", api.Get(api.Auth(http.HandlerFunc(api.FetchAllElectricityUsages)))) //berhasil
+	mux.Handle("/electricityusage/get", api.Get(api.Auth(http.HandlerFunc(api.FetchSElectricityUsagesByID))))   //gagal bad request 400
+	mux.Handle("/electricityusage/add", api.Post(api.Auth(http.HandlerFunc(api.StoreelectricityUsages))))       //berhasil
+	mux.Handle("/electricityusage/update", api.Put(api.Auth(http.HandlerFunc(api.UpdateelectricityUsages))))    //gagal bad request 400
+	mux.Handle("/electricityusage/delete", api.Delete(http.HandlerFunc(api.DeleteelectricityUsages)))           //gagal bad request 400
 
 	return api
 }
