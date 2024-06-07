@@ -32,10 +32,10 @@ type ElectricityUsages struct {
 
 type Prediction struct {
 	gorm.Model
-	ID           uint      `gorm:"not null"`
-	PredictedKwh float64   `gorm:"not null"`
-	PredictedAt  time.Time `gorm:"not null"`
-	CreatedAt    time.Time `gorm:"autoCreateTime"`
+	ID            uint      `gorm:"not null"`
+	PredictedKwh  float64   `gorm:"not null"`
+	PredictedCost float64   `gorm:"not null"`
+	CreatedAt     time.Time `gorm:"autoCreateTime"`
 }
 
 type Credential struct {

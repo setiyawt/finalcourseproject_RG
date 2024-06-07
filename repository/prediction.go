@@ -8,6 +8,7 @@ import (
 )
 
 type PredictionRepository interface {
+	Create(prediction model.Prediction) error
 	FetchAll() ([]model.Prediction, error)
 }
 
@@ -19,13 +20,17 @@ func NewPredictionRepo(db *gorm.DB) *predictionRepoImpl {
 	return &predictionRepoImpl{db}
 }
 
+func (s *predictionRepoImpl) Create(prediction model.Prediction) error {
+	return s.db.Create(&prediction).Error
+}
+
 func (s *predictionRepoImpl) FetchAll() ([]model.Prediction, error) {
-	var electricityUsages []model.Prediction
-	if err := s.db.Find(&electricityUsages).Error; err != nil {
+	var prediction []model.Prediction
+	if err := s.db.Find(&prediction).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("no electricity usage found")
 		}
 		return nil, err
 	}
-	return electricityUsages, nil
+	return prediction, nil
 }

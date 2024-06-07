@@ -115,19 +115,22 @@ func main() {
 	// Inisialisasi data prediksi
 	prediction := []model.Prediction{
 		{
-			PredictedKwh: 2240.0,
-			PredictedAt:  time.Now(),
-			CreatedAt:    time.Now(),
+			PredictedKwh:  2240.0,
+			PredictedCost: 569045,
+			CreatedAt:     time.Now(),
 		},
 		{
-			PredictedKwh: 2133.0,
-			PredictedAt:  time.Now(),
-			CreatedAt:    time.Now(),
+			CreatedAt: time.Now(),
 		},
 		{
-			PredictedKwh: 1294.0,
-			PredictedAt:  time.Now(),
-			CreatedAt:    time.Now(),
+			PredictedKwh:  2133.0,
+			PredictedCost: 603400,
+			CreatedAt:     time.Now(),
+		},
+		{
+			PredictedKwh:  1294.0,
+			PredictedCost: 559000,
+			CreatedAt:     time.Now(),
 		},
 	}
 
@@ -160,8 +163,10 @@ func main() {
 
 	userService := service.NewUserService(userRepo)
 	sessionService := service.NewSessionService(sessionRepo)
-	predictionService := service.NewPredictionService(predictionRepo)
+	predictionService := service.NewPredictionService(predictionRepo, electricityUsagesRepo)
 	electricityUsagesService := service.NewElectricityUsagesService(electricityUsagesRepo)
+
+	predictionService.StartPredictionJob()
 
 	mainAPI := api.NewAPI(userService, sessionService, predictionService, electricityUsagesService)
 	mainAPI.Start()

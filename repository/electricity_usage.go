@@ -13,6 +13,7 @@ type ElectricityUsagesRepository interface {
 	Store(s *model.ElectricityUsages) error
 	Update(id int, s *model.ElectricityUsages) error
 	Delete(id int) error
+	Create(usage model.ElectricityUsages) error
 }
 
 type electricityUsagesRepoImpl struct {
@@ -21,6 +22,13 @@ type electricityUsagesRepoImpl struct {
 
 func NewElectricityUsagesRepo(db *gorm.DB) *electricityUsagesRepoImpl {
 	return &electricityUsagesRepoImpl{db}
+}
+
+func (r *electricityUsagesRepoImpl) Create(usage model.ElectricityUsages) error {
+	if err := r.db.Create(&usage).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *electricityUsagesRepoImpl) FetchAll() ([]model.ElectricityUsages, error) {

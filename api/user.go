@@ -38,11 +38,11 @@ func (api *API) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//hashedPassword, err := bcrypt.GenerateFromPassword([]byte(creds.Password), bcrypt.DefaultCost)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(model.ErrorResponse{Error: "Internal Server Error"})
-		return
-	}
+	// if err != nil {
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// 	json.NewEncoder(w).Encode(model.ErrorResponse{Error: "Internal Server Error"})
+	// 	return
+	// }
 
 	//creds.Password = string(hashedPassword)
 
