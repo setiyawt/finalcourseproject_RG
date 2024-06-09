@@ -8,9 +8,9 @@ import (
 	"finalcourseproject/repository"
 	"io/ioutil"
 	"log"
+	"os"
 
 	"net/http"
-	"os"
 	"sync"
 
 	"github.com/robfig/cron/v3"
@@ -64,8 +64,10 @@ type HFResponse struct {
 }
 
 func (s *predictionService) StartPredictionJob() {
+	log.Println("Starting prediction job scheduler")
 	c := cron.New()
-	_, err := c.AddFunc("0 0 1 * *", func() { // Setiap tanggal 1 pada pukul 00:00
+	_, err := c.AddFunc("31 15 9 6 *", func() { // Setiap tanggal 1 pada pukul 00:00
+		log.Println("Running scheduled prediction job")
 		err := s.PredicElectricityUsages()
 		if err != nil {
 			// Tangani error
@@ -75,14 +77,24 @@ func (s *predictionService) StartPredictionJob() {
 	if err != nil {
 		// Tangani error
 		log.Println("Error dalam menjadwalkan proses prediksi:", err)
+		return // exit if cron job scheduling fails
 	}
 	c.Start()
+	log.Println("Prediction job scheduler started")
 }
 
 func (s *predictionService) PredicElectricityUsages() error {
+	log.Println("Fetching all electricity usages")
 	usages, err := s.electricityUsagesRepository.FetchAll()
 	if err != nil {
+		log.Println("Error fetching electricity usages:", err)
 		return err
+	}
+
+	token := os.Getenv("HF_API_TOKEN")
+	if token == "" {
+		log.Println("Hugging Face API token is not set in the environment variables")
+		return errors.New("Hugging Face API token is not set")
 	}
 
 	var wg sync.WaitGroup
@@ -93,27 +105,32 @@ func (s *predictionService) PredicElectricityUsages() error {
 		wg.Add(1)
 		go func(usage model.ElectricityUsages) {
 			defer wg.Done()
-			data := []float64{usage.Kwh, usage.UsageTime}
+			log.Println("Processing usage ID:", usage.ID)
+			data := []float64{usage.Usage_Kwh}
 			payload := Payload{Inputs: data}
 			payloadBytes, err := json.Marshal(payload)
 			if err != nil {
+				log.Println("Error marshaling payload:", err)
 				errChan <- err
 				return
 			}
 
+			log.Println("Payload to be sent:", string(payloadBytes))
 			body := bytes.NewReader(payloadBytes)
-			apiURL := "https://api-inference.huggingface.co/models/Ankur87/Llama2_Time_series_forecasting"
+			apiURL := "https://api-inference.huggingface.co/models/kashif/autoformer-electricity-hourly"
 			req, err := http.NewRequest("POST", apiURL, body)
 			if err != nil {
+				log.Println("Error creating request:", err)
 				errChan <- err
 				return
 			}
 
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("Authorization", "Bearer "+os.Getenv("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"))
+			req.Header.Set("Authorization", "Bearer "+token)
 
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
+				log.Println("Error sending request:", err)
 				errChan <- err
 				return
 			}
@@ -121,23 +138,28 @@ func (s *predictionService) PredicElectricityUsages() error {
 
 			respBody, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
+				log.Println("Error reading response body:", err)
 				errChan <- err
 				return
 			}
 
+			log.Println("Response from model API:", string(respBody))
 			var hfResponse HFResponse
-			if err := json.Unmarshal(respBody, &hfResponse); err != nil {
+			err = json.Unmarshal(respBody, &hfResponse)
+			if err != nil {
+				log.Println("Error unmarshaling response:", err)
 				errChan <- err
 				return
 			}
 
 			if len(hfResponse.Predictions) == 0 {
+				log.Println("No predictions returned from model")
 				errChan <- errors.New("no predictions returned from model")
 				return
 			}
 
 			predictedKwh := hfResponse.Predictions[0]
-			pricePerKwh := 1350.9
+			pricePerKwh := 1352.0
 			PredictedCost := predictedKwh * pricePerKwh
 
 			prediction := model.Prediction{
@@ -146,7 +168,9 @@ func (s *predictionService) PredicElectricityUsages() error {
 				PredictedCost: PredictedCost,
 			}
 
+			log.Println("Saving prediction for usage ID:", usage.ID)
 			if err := s.predictionRepository.Create(prediction); err != nil {
+				log.Println("Error saving prediction:", err)
 				errChan <- err
 				return
 			}
@@ -157,8 +181,10 @@ func (s *predictionService) PredicElectricityUsages() error {
 
 	select {
 	case err := <-errChan:
+		log.Println("Error occurred during prediction:", err)
 		return err
 	default:
+		log.Println("All predictions processed successfully")
 		return nil
 	}
 }

@@ -7,10 +7,8 @@ import (
 	"finalcourseproject/model"
 	repo "finalcourseproject/repository"
 	"finalcourseproject/service"
-	"fmt"
 	"log"
 	"os"
-	"sync"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -21,7 +19,7 @@ type UsagePayload struct {
 	UsageTime float64   `json:"usage_time"`
 	StartTime time.Time `json:"start_time"`
 	EndTime   time.Time `json:"end_time"`
-	Kwh       float64   `json:"kwh"`
+	Cost      float64   `json:"cost"`
 	Name      string    `json:"name"`
 }
 
@@ -81,9 +79,9 @@ func main() {
 			return
 		}
 
-		usageTime := usagePayload.EndTime.Sub(usagePayload.StartTime).Hours()
+		usage_kwh := usagePayload.EndTime.Sub(usagePayload.StartTime).Hours()
 		// Log the parsed data
-		log.Printf("Parsed data - Name: %s, StartTime: %v, EndTime: %v, Kwh: %f\n", usagePayload.Name, usagePayload.StartTime, usagePayload.EndTime, usagePayload.Kwh)
+		log.Printf("Parsed data - Name: %s, StartTime: %v, EndTime: %v", usagePayload.Name, usagePayload.StartTime, usagePayload.EndTime)
 
 		// Create a new ElectricityUsages entry
 
@@ -91,8 +89,7 @@ func main() {
 			Name:      usagePayload.Name,
 			StartTime: usagePayload.StartTime,
 			EndTime:   usagePayload.EndTime,
-			UsageTime: usageTime,
-			Kwh:       usagePayload.Kwh,
+			Usage_Kwh: usage_kwh,
 		}
 
 		// Store the data in the database
@@ -105,56 +102,56 @@ func main() {
 
 	token.Wait()
 
-	if token.Error() != nil {
-		log.Fatal("Error subscribing to the MQTT topic:", token.Error())
-		os.Exit(1)
-	} else {
-		log.Println("Subscribed to the MQTT topic successfully.")
-	}
+	// if token.Error() != nil {
+	// 	log.Fatal("Error subscribing to the MQTT topic:", token.Error())
+	// 	os.Exit(1)
+	// } else {
+	// 	log.Println("Subscribed to the MQTT topic successfully.")
+	// }
 
-	// Inisialisasi data prediksi
-	prediction := []model.Prediction{
-		{
-			PredictedKwh:  2240.0,
-			PredictedCost: 569045,
-			CreatedAt:     time.Now(),
-		},
-		{
-			CreatedAt: time.Now(),
-		},
-		{
-			PredictedKwh:  2133.0,
-			PredictedCost: 603400,
-			CreatedAt:     time.Now(),
-		},
-		{
-			PredictedKwh:  1294.0,
-			PredictedCost: 559000,
-			CreatedAt:     time.Now(),
-		},
-	}
+	// // Inisialisasi data prediksi
+	// prediction := []model.Prediction{
+	// 	{
+	// 		PredictedKwh:  2240.0,
+	// 		PredictedCost: 569045,
+	// 		CreatedAt:     time.Now(),
+	// 	},
+	// 	{
+	// 		CreatedAt: time.Now(),
+	// 	},
+	// 	{
+	// 		PredictedKwh:  2133.0,
+	// 		PredictedCost: 603400,
+	// 		CreatedAt:     time.Now(),
+	// 	},
+	// 	{
+	// 		PredictedKwh:  1294.0,
+	// 		PredictedCost: 559000,
+	// 		CreatedAt:     time.Now(),
+	// 	},
+	// }
 
-	var wg sync.WaitGroup
-	errChan := make(chan error, len(prediction))
+	// var wg sync.WaitGroup
+	// errChan := make(chan error, len(prediction))
 
-	for _, usage := range prediction {
-		wg.Add(1)
-		go func(usage model.Prediction) {
-			defer wg.Done()
-			if err := conn.Create(&usage).Error; err != nil {
-				errChan <- fmt.Errorf("failed to create default electricity_usage: %w", err)
-			}
-		}(usage)
-	}
+	// for _, usage := range prediction {
+	// 	wg.Add(1)
+	// 	go func(usage model.Prediction) {
+	// 		defer wg.Done()
+	// 		if err := conn.Create(&usage).Error; err != nil {
+	// 			errChan <- fmt.Errorf("failed to create default electricity_usage: %w", err)
+	// 		}
+	// 	}(usage)
+	// }
 
-	wg.Wait()
-	close(errChan)
+	// wg.Wait()
+	// close(errChan)
 
-	for err := range errChan {
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
+	// for err := range errChan {
+	// 	if err != nil {
+	// 		fmt.Println(err)
+	// 	}
+	// }
 
 	userRepo := repo.NewUserRepo(conn)
 	sessionRepo := repo.NewSessionRepo(conn)

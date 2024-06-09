@@ -24,8 +24,7 @@ type ElectricityUsages struct {
 	ID        uint      `gorm:"not null"`
 	StartTime time.Time `json:"start_time"`
 	EndTime   time.Time `json:"end_time"`
-	UsageTime float64   `gorm:"type:decimal(10,2)"`
-	Kwh       float64   `gorm:"not null"`
+	Usage_Kwh float64   `gorm:"type:decimal(10,2)"`
 	Name      string    `gorm:"not null"`
 	CreatedAt time.Time `gorm:"autoCreateTime"`
 }

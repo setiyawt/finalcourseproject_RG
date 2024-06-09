@@ -48,8 +48,9 @@ func (api *API) StoreelectricityUsages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Printf("Received data: %+v", electricityUsages)
-	usageTime := electricityUsages.EndTime.Sub(electricityUsages.StartTime).Hours()
-	electricityUsages.UsageTime = usageTime
+	usage_kwh := electricityUsages.EndTime.Sub(electricityUsages.StartTime).Hours()
+	electricityUsages.Usage_Kwh = usage_kwh
+
 	err = api.electricityUsagesService.Store(&electricityUsages)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

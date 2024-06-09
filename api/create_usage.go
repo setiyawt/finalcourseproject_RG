@@ -9,8 +9,8 @@ import (
 
 type UsageRequest struct {
 	DeviceName string  `json:"device_name"`
-	Kwh        float64 `json:"kwh"`
-	UsageTime  float64 `json:"usage_time"`
+	Cost       float64 `json:"cost"`
+	Usage_Kwh  float64 `json:"usage_kwh"`
 }
 
 type UsageHandler struct {
@@ -29,17 +29,16 @@ func (h *UsageHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	usage := model.ElectricityUsages{
-		Name:      req.DeviceName,
-		Kwh:       req.Kwh,
-		UsageTime: req.UsageTime,
+		Name: req.DeviceName,
+		//Cost:      req.Cost,
+		Usage_Kwh: req.Usage_Kwh,
 	}
 
-	err := h.usageRepository.Create(usage)
-	if err != nil {
+	if err := h.usageRepository.Create(usage); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(usage)
+	json.NewEncoder(w).Encode(map[string]uint{"id": usage.ID})
 }
